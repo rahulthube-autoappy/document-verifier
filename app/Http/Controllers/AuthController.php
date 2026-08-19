@@ -24,7 +24,12 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
     
-        return $this->generateTokenPair($user, 'Registration successful', 201);
+        // return $this->generateTokenPair($user, 'Registration successful', 201);
+        return response()->json([
+            'Registration successful', 
+            "user" => $user], 
+            201
+        );
     }
 
     public function login(Request $request)
@@ -52,17 +57,7 @@ class AuthController extends Controller
     
         // Optional: Revoke the current refresh token to enforce single-use rotation policy
         $user->currentAccessToken()->delete();
-    
-        // Issue a fresh short-lived Access Token
-        $accessTokenExpiry = now()->addMinutes(15);
-        $newAccessToken = $user->createToken('access_token', ['access-api'], $accessTokenExpiry)->plainTextToken;
-    
-        return response()->json([
-            'message' => 'Access token refreshed successfully',
-            'access_token' => $newAccessToken,
-            'token_type' => 'Bearer',
-            'expires_in' => 900
-        ], 200);
+        return $this->generateTokenPair($user, 'Tokens refreshed and rotated successfully', 200);
     }
     
         // Revoke the current user token (Logout)
@@ -94,7 +89,7 @@ class AuthController extends Controller
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
-            'expires_in' => 180, // 15 minutes in seconds
+            'expires_in' => 180, //3 minutes in seconds
             'user' => $user
         ], $status);
     }
@@ -104,58 +99,5 @@ class AuthController extends Controller
     {
         return $this->generateTokenPrinter($user, $message, $status);
     }
-    
-    
+       
 }
-
-// public function register(Request $request)
-    // {
-    //     $request->validate([
-    //         'name' => ['required', 'string', 'max:255'],
-    //         'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-    //         'password' => ['required', 'string', 'min:8'],
-    //     ]);
-
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => Hash::make($request->password),
-    //     ]);
-
-    //     $token = $user->createToken('auth_token')->plainTextToken;
-
-    //     return response()->json([
-    //         'message' => 'Registration successful',
-    //         'access_token' => $token,
-    //         'token_type' => 'Bearer',
-    //         'user' => $user
-    //     ], 201);
-    // }
-
-    // Authenticate user credentials and return a Bearer token
-
-    // public function login(Request $request)
-    // {
-    //     $request->validate([
-    //         'email' => ['required', 'string', 'email'],
-    //         'password' => ['required', 'string'],
-    //     ]);
-
-    //     $user = User::where('email', $request->email)->first();
-
-    //     if (! $user || ! Hash::check($request->password, $user->password)) {
-    //         throw ValidationException::withMessages([
-    //             'email' => ['The provided credentials are incorrect.'],
-    //         ]);
-    //     }
-
-    //     // Optional: Revoke previous tokens if you want single-device login
-    //     // $user->tokens()->delete();
-    //     $token = $user->createToken('auth_token')->plainTextToken;
-    //     return response()->json([
-    //         'message' => 'Login successful',
-    //         'access_token' => $token,
-    //         'token_type' => 'Bearer',
-    //         'user' => $user
-    //     ], 200);
-    // }
